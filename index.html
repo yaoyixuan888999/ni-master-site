@@ -106,20 +106,29 @@
       const payload = {
         type,
         birth,
-        image: base64Image
+        image: base64Image,
+        time: new Date().toISOString()
       };
 
-      await fetch('/api/submit', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(payload)
-      }).catch(error => {
-        console.error('提交失败：', error);
-      });
+      try {
+        const response = await fetch('/api/submit', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(payload)
+        });
 
-      resultText.innerText = '✅ 已提交大师分析，请稍后查看结果或由系统回传。';
+        if (!response.ok) {
+          throw new Error('服务器响应失败');
+        }
+
+        const resultData = await response.json();
+        resultText.innerText = resultData.message || '✅ 已提交大师分析，请稍后查看结果或由系统回传。';
+      } catch (error) {
+        console.error('提交失败：', error);
+        resultText.innerText = '❌ 提交失败，请稍后再试。';
+      }
     }
 
     function toBase64(file) {
