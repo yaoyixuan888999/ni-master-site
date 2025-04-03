@@ -6,7 +6,7 @@ export default async function handler(req, res) {
   const data = req.body;
 
   try {
-    const webhookUrl = 'https://hook.us2.make.com/qopqcxklpfcksak3nzpkilnqp33ae281'; // 你的 Make Webhook
+    const webhookUrl = 'https://hook.us2.make.com/qopqcxklpfcksak3nzpkilnqp33ae281';
 
     const response = await fetch(webhookUrl, {
       method: 'POST',
@@ -20,9 +20,9 @@ export default async function handler(req, res) {
       throw new Error(`Webhook error: ${response.status}`);
     }
 
-    res.status(200).json({ message: '已成功发送到大师系统' });
+    res.status(200).json({ message: 'Success' });
   } catch (error) {
-    console.error('转发 Webhook 失败：', error);
-    res.status(500).json({ message: '转发失败', error: error.message });
+    console.error('Error forwarding to Webhook:', error);
+    res.status(500).json({ message: 'Server Error', error: error.message });
   }
 }
