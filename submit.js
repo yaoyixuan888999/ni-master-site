@@ -64,7 +64,7 @@ async function pollResult() {
   const resultText = document.getElementById('resultText');
   for (let i = 0; i < 20; i++) {
     try {
-      const response = await fetch('https://84b4-85-12-6-93.ngrok-free.app/result');
+      const response = await fetch('https://4a91-85-12-6-95.ngrok-free.app/result');
       const data = await response.json();
 
       if (data.status === 'done') {
