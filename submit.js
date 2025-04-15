@@ -46,7 +46,7 @@ async function submitData() {
   };
 
   try {
-    await fetch('https://84b4-85-12-6-93.ngrok-free.app/trigger', {
+    await fetch('https://4a91-85-12-6-95.ngrok-free.app/trigger', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload)
