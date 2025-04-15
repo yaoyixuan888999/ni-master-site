@@ -24,15 +24,12 @@
   </style>
 </head>
 <body class="min-h-screen flex flex-col items-center justify-center text-gray-800">
-  <!-- 顶部 Logo 区域 -->
   <div class="text-center mb-6">
     <h1 class="text-4xl text-red-700 font-bold tracking-widest">倪大师</h1>
     <p class="text-gray-600 text-lg">智能命理 · AI 图像识别 · 八字面相分析</p>
   </div>
 
-  <!-- 主体内容卡片 -->
   <div class="bg-overlay rounded-2xl p-8 shadow-xl w-full max-w-xl">
-    <!-- 类型选择 -->
     <div class="mb-5">
       <label class="block text-lg font-semibold mb-2">请选择分析类型：</label>
       <select id="analysisType" class="w-full border border-gray-300 rounded p-3 text-base">
@@ -42,37 +39,30 @@
       </select>
     </div>
 
-    <!-- 图片上传区域 -->
     <div id="imageUploadBlock" class="mb-5">
       <label class="block text-lg font-semibold mb-2">上传图像（用于手相/面相分析）：</label>
       <input type="file" id="imageInput" accept="image/*" class="w-full border border-gray-300 rounded p-3" />
     </div>
 
-    <!-- 出生信息输入（仅八字） -->
     <div id="birthInputBlock" class="mb-5 hidden">
       <label class="block text-lg font-semibold mb-2">出生信息（格式：1990-01-01 08:00）：</label>
       <input type="text" id="birthInput" class="w-full border border-gray-300 rounded p-3" placeholder="请输入出生年月日时" />
     </div>
 
-    <!-- 提交按钮 -->
     <div class="text-center">
-      <button onclick="submitData()" class="bg-gradient-to-r from-red-500 to-yellow-500 text-white px-6 py-3 rounded-xl font-bold text-lg btn-shadow hover:scale-105 transition transform duration-200">🔮 提交分析</button>
+      <button onclick="submitData()" class="bg-gradient-to-r from-red-500 to-yellow-500 text-white px-6 py-3 rounded-xl font-bold text-lg btn-shadow hover:scale-105 transition transform duration-200">🍒 提交分析</button>
     </div>
 
-    <!-- 分析结果显示 -->
     <div id="resultBlock" class="mt-8 hidden">
       <h2 class="text-xl font-semibold text-red-600 mb-2">大师解析如下：</h2>
-      <div id="resultText" class="bg-white border-l-4 border-yellow-500 p-4 rounded shadow-md text-gray-700 whitespace-pre-wrap"></div>
+      <div id="resultText" class="bg-white border-l-4 border-yellow-500 p-4 rounded shadow-md text-gray-700"></div>
     </div>
   </div>
 
-  <!-- 前端逻辑脚本 -->
   <script>
     const typeSelect = document.getElementById('analysisType');
     const imageUploadBlock = document.getElementById('imageUploadBlock');
     const birthInputBlock = document.getElementById('birthInputBlock');
-    const result = document.getElementById('resultBlock');
-    const resultText = document.getElementById('resultText');
 
     typeSelect.addEventListener('change', () => {
       if (typeSelect.value === 'bazi') {
@@ -85,15 +75,17 @@
     });
 
     async function submitData() {
-      const type = typeSelect.value;
+      const type = document.getElementById('analysisType').value;
       const imageInput = document.getElementById('imageInput');
       const birth = document.getElementById('birthInput')?.value || '';
+      const result = document.getElementById('resultBlock');
+      const resultText = document.getElementById('resultText');
 
       result.classList.remove('hidden');
-      resultText.innerText = '⏳ 倪大师掐指一算中，请稍候...';
+      resultText.innerText = '⏳ 倪大师掘指一算中，请稍候...';
 
       if (type !== 'bazi' && imageInput.files.length === 0) {
-        resultText.innerText = '⚠️ 请上传图像后再提交。';
+        resultText.innerText = '请上传图像后再提交。';
         return;
       }
 
@@ -107,25 +99,38 @@
         type,
         birth,
         image: base64Image,
-        time: new Date().toISOString()
+        time: new Date().toISOString(),
+        text: `分析类型: ${type}, 出生信息: ${birth}`
       };
 
       try {
-        const response = await fetch('/trigger', {
+        await fetch('http://127.0.0.1:5001/trigger', {
           method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({ text: JSON.stringify(payload) })
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
         });
 
-        if (!response.ok) throw new Error('服务器提交失败');
+        pollResult(); // 连续查看是否有分析结果
 
-        pollResult(); // 启动轮询
-      } catch (err) {
-        console.error(err);
+      } catch (error) {
+        console.error('提交失败：', error);
         resultText.innerText = '❌ 提交失败，请稍后再试。';
       }
+    }
+
+    async function pollResult() {
+      const resultText = document.getElementById('resultText');
+      for (let i = 0; i < 20; i++) {
+        const response = await fetch('http://127.0.0.1:5001/result');
+        const data = await response.json();
+
+        if (data.status === 'done') {
+          resultText.innerText = data.reply;
+          return;
+        }
+        await new Promise(r => setTimeout(r, 3000));
+      }
+      resultText.innerText = '⚠️ 暂未获取到回复，请稍后手动查看。';
     }
 
     function toBase64(file) {
@@ -136,30 +141,7 @@
         reader.onerror = error => reject(error);
       });
     }
-
-    async function pollResult() {
-      let retry = 0;
-      const maxRetry = 30;
-
-      const timer = setInterval(async () => {
-        try {
-          const res = await fetch('/result');
-          const data = await res.json();
-
-          if (data.status === 'done') {
-            clearInterval(timer);
-            resultText.innerText = data.reply;
-          } else if (retry >= maxRetry) {
-            clearInterval(timer);
-            resultText.innerText = '⚠️ 超时未获取结果，请稍后重试';
-          }
-
-          retry++;
-        } catch (e) {
-          console.log('轮询失败', e);
-        }
-      }, 5000);
-    }
   </script>
 </body>
 </html>
+
