@@ -42,21 +42,43 @@ async function submitData() {
   };
 
   try {
-    const response = await fetch('https://hook.us2.make.com/qopqcxklpfcksak3nzpkilnqp33ae281', {
+    // ✅ 发给 Make webhook，不动
+    await fetch('https://hook.us2.make.com/qopqcxklpfcksak3nzpkilnqp33ae281', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload)
     });
 
-    if (!response.ok) {
-      throw new Error('服务器响应失败');
-    }
-
     resultText.innerText = '✅ 大师已接收，请等待结果返回...';
+
+    // ✅ 启动轮询，去 Flask 后端取结果
+    pollResult();
+
   } catch (error) {
     console.error('提交失败：', error);
     resultText.innerText = '❌ 提交失败，请稍后再试。';
   }
+}
+
+async function pollResult() {
+  const resultText = document.getElementById('resultText');
+  for (let i = 0; i < 20; i++) {
+    try {
+      const response = await fetch('http://127.0.0.1:5001/result');
+      const data = await response.json();
+
+      if (data.status === 'done') {
+        resultText.innerText = data.reply;
+        return;
+      }
+    } catch (e) {
+      console.warn('轮询失败，等待中...', e);
+    }
+
+    await new Promise(resolve => setTimeout(resolve, 3000)); // 每 3 秒轮询一次
+  }
+
+  resultText.innerText = '⚠️ 等待超时，请稍后刷新查看或联系管理员';
 }
 
 function toBase64(file) {
