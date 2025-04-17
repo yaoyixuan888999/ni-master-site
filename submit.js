@@ -4,6 +4,7 @@ const birthInputBlock = document.getElementById('birthInputBlock');
 const result = document.getElementById('resultBlock');
 const resultText = document.getElementById('resultText');
 
+// 自动切换输入方式
 typeSelect.addEventListener('change', () => {
   if (typeSelect.value === 'bazi') {
     imageUploadBlock.classList.add('hidden');
@@ -14,6 +15,7 @@ typeSelect.addEventListener('change', () => {
   }
 });
 
+// 提交分析
 async function submitData() {
   const type = document.getElementById('analysisType').value;
   const imageInput = document.getElementById('imageInput');
@@ -38,56 +40,57 @@ async function submitData() {
     birth,
     image: base64Image,
     time: new Date().toISOString(),
-    text: `用户类型:${type},分析类型:${type},图片:${base64Image ? '(已上传)' : '无'},问题:请分析该用户的性格与近期运势`
+    text: `分析类型: ${type}, 出生信息: ${birth}`
   };
 
   try {
-    // ✅ 提交数据到 Make 接口
-    const res = await fetch('https://hook.us2.make.com/qopqcxklpfcksak3nzpkilnqp33ae281', {
+    // ✅ 提交到 Make webhook（确保链接有效）
+    await fetch('https://hook.us2.make.com/qopqcxklpfcksak3nzpkilnqp33ae281', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload)
     });
 
-    if (!res.ok) throw new Error('提交失败');
-
     resultText.innerText = '✅ 大师已接收，请等待结果返回...';
 
-    // ✅ 开始轮询结果
-    let attempts = 0;
-    const maxAttempts = 15;
-    const pollInterval = 3000;
+    // ✅ 轮询后台结果（使用 Ngrok 公网地址）
+    const maxAttempts = 20;
+    const interval = 3000;
+    let attempt = 0;
 
-    const pollResult = async () => {
-      const response = await fetch('https://7f6c-85-12-6-95.ngrok-free.app/result');
-      const jsonText = await response.text();
+    while (attempt < maxAttempts) {
+      const res = await fetch('https://7f6c-85-12-6-95.ngrok-free.app/result');
+      const contentType = res.headers.get('content-type');
 
-      try {
-        const data = JSON.parse(jsonText);
+      if (contentType && contentType.includes('application/json')) {
+        const data = await res.json();
+
         if (data.status === 'done') {
-          resultText.innerText = decodeUnicode(data.reply);
+          resultText.innerText = data.reply || '大师尚未言传，请稍候再试。';
+          return;
+        } else if (data.status === 'empty') {
+          resultText.innerText = '⚠️ 暂未获取到回复，请稍后重试或联系管理员';
           return;
         }
-      } catch (err) {
-        console.warn('⚠️ 无法解析 JSON：', jsonText);
-      }
-
-      attempts++;
-      if (attempts < maxAttempts) {
-        setTimeout(pollResult, pollInterval);
       } else {
-        resultText.innerText = '⚠️ 暂未获取到回复，请稍后手动查看。';
+        console.warn('返回的是 HTML 页面，可能是 Ngrok 被限流了');
+        resultText.innerText = '⚠️ 服务暂时不可用，请稍后刷新页面重试。';
+        return;
       }
-    };
 
-    setTimeout(pollResult, pollInterval);
+      await new Promise(r => setTimeout(r, interval));
+      attempt++;
+    }
+
+    resultText.innerText = '⚠️ 等待超时，请稍后刷新查看或联系管理员';
 
   } catch (error) {
-    console.error('提交失败：', error);
+    console.error('❌ 提交失败：', error);
     resultText.innerText = '❌ 提交失败，请稍后再试。';
   }
 }
 
+// 图片转 Base64
 function toBase64(file) {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
@@ -95,12 +98,4 @@ function toBase64(file) {
     reader.onload = () => resolve(reader.result);
     reader.onerror = error => reject(error);
   });
-}
-
-function decodeUnicode(str) {
-  try {
-    return JSON.parse(`"${str.replace(/"/g, '\\"')}"`);
-  } catch (err) {
-    return str;
-  }
 }
