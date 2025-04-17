@@ -41,20 +41,40 @@ async function submitData() {
     text: `分析类型: ${type}, 出生信息: ${birth}`
   };
 
-  // ✅ 非阻塞方式提交给 Make
+  // ✅ 使用 Make Webhook - 不等待返回，立即进入轮询
   fetch('https://hook.us2.make.com/qopqcxklpfcksak3nzpkilnqp33ae281', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(payload)
   })
   .then(() => {
-    resultText.innerText = '✅ 大师已接收，请等待结果返回...';
+    resultText.innerText = '✅ 大师已接收，请等待解析结果...';
     pollResult();
   })
   .catch(error => {
     console.error('提交失败：', error);
     resultText.innerText = '❌ 提交失败，请稍后再试。';
   });
+}
+
+async function pollResult() {
+  for (let i = 0; i < 20; i++) {
+    try {
+      const res = await fetch('http://127.0.0.1:5001/result');
+      const data = await res.json();
+
+      if (data.status === 'done') {
+        resultText.innerText = data.reply;
+        return;
+      }
+    } catch (e) {
+      console.warn('轮询失败:', e);
+    }
+
+    await new Promise(r => setTimeout(r, 3000));
+  }
+
+  resultText.innerText = '⚠️ 暂未获取到回复，请稍后手动查看。';
 }
 
 function toBase64(file) {
@@ -64,35 +84,4 @@ function toBase64(file) {
     reader.onload = () => resolve(reader.result);
     reader.onerror = error => reject(error);
   });
-}
-
-// ✅ 轮询 Flask 服务获取分析结果
-async function pollResult() {
-  const maxTries = 20;
-  const interval = 3000; // 每3秒轮询一次
-
-  for (let i = 0; i < maxTries; i++) {
-    try {
-      const res = await fetch('https://7f6c-85-12-6-95.ngrok-free.app/result');
-      const data = await res.json();
-
-      if (data.status === 'done') {
-        resultText.innerText = data.reply;
-        return;
-      } else if (data.status === 'empty') {
-        resultText.innerText = '⚠️ 暂无结果，请稍后重试。';
-        return;
-      } else if (data.status === 'error') {
-        resultText.innerText = `❌ 错误：${data.message}`;
-        return;
-      }
-
-    } catch (e) {
-      console.warn('轮询中断，等待重试...');
-    }
-
-    await new Promise(resolve => setTimeout(resolve, interval));
-  }
-
-  resultText.innerText = '⚠️ 等待超时，请稍后刷新查看或联系客服。';
 }
