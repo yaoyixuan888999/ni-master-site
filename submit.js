@@ -60,7 +60,7 @@ async function submitData() {
 async function pollResult() {
   for (let i = 0; i < 20; i++) {
     try {
-      const res = await fetch('http://127.0.0.1:5001/result');
+      const res = await fetch('https://7f6c-85-12-6-95.ngrok-free.app/result');
       const data = await res.json();
 
       if (data.status === 'done') {
