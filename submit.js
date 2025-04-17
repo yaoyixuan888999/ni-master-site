@@ -41,37 +41,48 @@ async function submitData() {
     text: `分析类型: ${type}, 出生信息: ${birth}`
   };
 
-  // ✅ 使用 Make Webhook - 不等待返回，立即进入轮询
-  fetch('https://hook.us2.make.com/qopqcxklpfcksak3nzpkilnqp33ae281', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(payload)
-  })
-  .then(() => {
-    resultText.innerText = '✅ 大师已接收，请等待解析结果...';
+  try {
+    // ✅ 提交数据到 Make Webhook（你已经设置的地址）
+    const response = await fetch('https://hook.us2.make.com/qopqcxklpfcksak3nzpkilnqp33ae281', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+
+    if (!response.ok) throw new Error('Webhook 提交失败');
+
+    resultText.innerText = '✅ 大师已接收，请等待结果返回...';
+
+    // ✅ 开始轮询结果（你本地 Python Flask 通过 ngrok 暴露的地址）
     pollResult();
-  })
-  .catch(error => {
+
+  } catch (error) {
     console.error('提交失败：', error);
     resultText.innerText = '❌ 提交失败，请稍后再试。';
-  });
+  }
 }
 
 async function pollResult() {
   for (let i = 0; i < 20; i++) {
     try {
-      const res = await fetch('https://7f6c-85-12-6-95.ngrok-free.app/result');
-      const data = await res.json();
+      const response = await fetch('https://7f6c-85-12-6-95.ngrok-free.app/result');
+      const data = await response.json();
 
       if (data.status === 'done') {
-        resultText.innerText = data.reply;
+        const decodedReply = decodeUnicode(data.reply);
+        resultText.innerText = decodedReply;
+        return;
+      } else if (data.status === 'empty') {
+        resultText.innerText = '⚠️ 大师回复为空，请稍后再试。';
         return;
       }
-    } catch (e) {
-      console.warn('轮询失败:', e);
-    }
 
-    await new Promise(r => setTimeout(r, 3000));
+      // 等待 3 秒再查
+      await new Promise(resolve => setTimeout(resolve, 3000));
+    } catch (e) {
+      console.error('获取结果失败：', e);
+      await new Promise(resolve => setTimeout(resolve, 3000));
+    }
   }
 
   resultText.innerText = '⚠️ 暂未获取到回复，请稍后手动查看。';
@@ -84,4 +95,12 @@ function toBase64(file) {
     reader.onload = () => resolve(reader.result);
     reader.onerror = error => reject(error);
   });
+}
+
+function decodeUnicode(str) {
+  try {
+    return JSON.parse('"' + str.replace(/"/g, '\\"') + '"');
+  } catch (e) {
+    return str;
+  }
 }
