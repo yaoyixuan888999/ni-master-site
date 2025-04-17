@@ -41,23 +41,20 @@ async function submitData() {
     text: `分析类型: ${type}, 出生信息: ${birth}`
   };
 
-  try {
-    // ✅ 你的 Make Webhook 地址
-    const response = await fetch('https://hook.us2.make.com/你的-webhook-id', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload)
-    });
-
-    if (!response.ok) throw new Error('提交失败');
-
+  // ✅ 非阻塞方式提交给 Make
+  fetch('https://hook.us2.make.com/你的-webhook-id', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload)
+  })
+  .then(() => {
     resultText.innerText = '✅ 大师已接收，请等待结果返回...';
     pollResult();
-
-  } catch (error) {
+  })
+  .catch(error => {
     console.error('提交失败：', error);
     resultText.innerText = '❌ 提交失败，请稍后再试。';
-  }
+  });
 }
 
 function toBase64(file) {
@@ -69,11 +66,10 @@ function toBase64(file) {
   });
 }
 
-// ✅ 轮询本地服务的结果
+// ✅ 轮询 Flask 服务获取分析结果
 async function pollResult() {
   const maxTries = 20;
   const interval = 3000; // 每3秒轮询一次
-  const resultText = document.getElementById('resultText');
 
   for (let i = 0; i < maxTries; i++) {
     try {
@@ -92,7 +88,7 @@ async function pollResult() {
       }
 
     } catch (e) {
-      console.warn('轮询出错，重试中...');
+      console.warn('轮询中断，等待重试...');
     }
 
     await new Promise(resolve => setTimeout(resolve, interval));
