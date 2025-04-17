@@ -64,7 +64,7 @@ async function pollResult() {
   const resultText = document.getElementById('resultText');
   for (let i = 0; i < 20; i++) {
     try {
-      const response = await fetch('http://127.0.0.1:5001/result');
+      const response = await fetch('https://abc123.ngrok-free.app/result');
       const data = await response.json();
 
       if (data.status === 'done') {
