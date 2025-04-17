@@ -59,7 +59,7 @@ async function submitData() {
     let attempt = 0;
 
     while (attempt < maxAttempts) {
-      const res = await fetch('https://7f6c-85-12-6-95.ngrok-free.app/result');
+      const res = await fetch('https://5ac3-91-148-238-123.ngrok-free.app/result');
       const contentType = res.headers.get('content-type');
 
       if (contentType && contentType.includes('application/json')) {
