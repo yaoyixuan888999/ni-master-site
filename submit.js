@@ -38,54 +38,54 @@ async function submitData() {
     birth,
     image: base64Image,
     time: new Date().toISOString(),
-    text: `分析类型: ${type}, 出生信息: ${birth}`
+    text: `用户类型:${type},分析类型:${type},图片:${base64Image ? '(已上传)' : '无'},问题:请分析该用户的性格与近期运势`
   };
 
   try {
-    // ✅ 提交数据到 Make Webhook（你已经设置的地址）
-    const response = await fetch('https://hook.us2.make.com/qopqcxklpfcksak3nzpkilnqp33ae281', {
+    // ✅ 提交数据到 Make 接口
+    const res = await fetch('https://hook.us2.make.com/qopqcxklpfcksak3nzpkilnqp33ae281', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload)
     });
 
-    if (!response.ok) throw new Error('Webhook 提交失败');
+    if (!res.ok) throw new Error('提交失败');
 
     resultText.innerText = '✅ 大师已接收，请等待结果返回...';
 
-    // ✅ 开始轮询结果（你本地 Python Flask 通过 ngrok 暴露的地址）
-    pollResult();
+    // ✅ 开始轮询结果
+    let attempts = 0;
+    const maxAttempts = 15;
+    const pollInterval = 3000;
+
+    const pollResult = async () => {
+      const response = await fetch('https://7f6c-85-12-6-95.ngrok-free.app/result');
+      const jsonText = await response.text();
+
+      try {
+        const data = JSON.parse(jsonText);
+        if (data.status === 'done') {
+          resultText.innerText = decodeUnicode(data.reply);
+          return;
+        }
+      } catch (err) {
+        console.warn('⚠️ 无法解析 JSON：', jsonText);
+      }
+
+      attempts++;
+      if (attempts < maxAttempts) {
+        setTimeout(pollResult, pollInterval);
+      } else {
+        resultText.innerText = '⚠️ 暂未获取到回复，请稍后手动查看。';
+      }
+    };
+
+    setTimeout(pollResult, pollInterval);
 
   } catch (error) {
     console.error('提交失败：', error);
     resultText.innerText = '❌ 提交失败，请稍后再试。';
   }
-}
-
-async function pollResult() {
-  for (let i = 0; i < 20; i++) {
-    try {
-      const response = await fetch('https://7f6c-85-12-6-95.ngrok-free.app/result');
-      const data = await response.json();
-
-      if (data.status === 'done') {
-        const decodedReply = decodeUnicode(data.reply);
-        resultText.innerText = decodedReply;
-        return;
-      } else if (data.status === 'empty') {
-        resultText.innerText = '⚠️ 大师回复为空，请稍后再试。';
-        return;
-      }
-
-      // 等待 3 秒再查
-      await new Promise(resolve => setTimeout(resolve, 3000));
-    } catch (e) {
-      console.error('获取结果失败：', e);
-      await new Promise(resolve => setTimeout(resolve, 3000));
-    }
-  }
-
-  resultText.innerText = '⚠️ 暂未获取到回复，请稍后手动查看。';
 }
 
 function toBase64(file) {
@@ -99,8 +99,8 @@ function toBase64(file) {
 
 function decodeUnicode(str) {
   try {
-    return JSON.parse('"' + str.replace(/"/g, '\\"') + '"');
-  } catch (e) {
+    return JSON.parse(`"${str.replace(/"/g, '\\"')}"`);
+  } catch (err) {
     return str;
   }
 }
