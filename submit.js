@@ -42,32 +42,17 @@ async function submitData() {
   };
 
   try {
-    // ✅ Make webhook 地址
-    await fetch('https://hook.us2.make.com/qopqcxklpfcksak3nzpkilnqp33ae281', {
+    // ✅ 你的 Make Webhook 地址
+    const response = await fetch('https://hook.us2.make.com/你的-webhook-id', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload)
     });
 
+    if (!response.ok) throw new Error('提交失败');
+
     resultText.innerText = '✅ 大师已接收，请等待结果返回...';
-
-    // ✅ 轮询 ngrok 地址
-    for (let i = 0; i < 20; i++) {
-      const res = await fetch('https://7f6c-85-12-6-95.ngrok-free.app/result');
-      const data = await res.json();
-
-      if (data.status === 'done') {
-        resultText.innerText = data.reply;
-        return;
-      } else if (data.status === 'empty') {
-        resultText.innerText = '❌ 回复为空，请检查后端写入逻辑';
-        return;
-      }
-
-      await new Promise(resolve => setTimeout(resolve, 3000));
-    }
-
-    resultText.innerText = '⚠️ 等待超时，请稍后刷新查看或联系管理员';
+    pollResult();
 
   } catch (error) {
     console.error('提交失败：', error);
@@ -82,4 +67,36 @@ function toBase64(file) {
     reader.onload = () => resolve(reader.result);
     reader.onerror = error => reject(error);
   });
+}
+
+// ✅ 轮询本地服务的结果
+async function pollResult() {
+  const maxTries = 20;
+  const interval = 3000; // 每3秒轮询一次
+  const resultText = document.getElementById('resultText');
+
+  for (let i = 0; i < maxTries; i++) {
+    try {
+      const res = await fetch('https://7f6c-85-12-6-95.ngrok-free.app/result');
+      const data = await res.json();
+
+      if (data.status === 'done') {
+        resultText.innerText = data.reply;
+        return;
+      } else if (data.status === 'empty') {
+        resultText.innerText = '⚠️ 暂无结果，请稍后重试。';
+        return;
+      } else if (data.status === 'error') {
+        resultText.innerText = `❌ 错误：${data.message}`;
+        return;
+      }
+
+    } catch (e) {
+      console.warn('轮询出错，重试中...');
+    }
+
+    await new Promise(resolve => setTimeout(resolve, interval));
+  }
+
+  resultText.innerText = '⚠️ 等待超时，请稍后刷新查看或联系客服。';
 }
