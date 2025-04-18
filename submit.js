@@ -33,7 +33,7 @@ async function submitData() {
   }
 
   try {
-    const res = await fetch("https://sources-coverage-herald-downloading.trycloudflare.com/trigger", {
+    const res = await fetch("https://coding-resist-candidates-calls.trycloudflare.com/trigger", {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
@@ -66,7 +66,7 @@ async function pollResult() {
 
   const interval = setInterval(async () => {
     try {
-      const res = await fetch("https://sources-coverage-herald-downloading.trycloudflare.com/result");
+      const res = await fetch("https://coding-resist-candidates-calls.trycloudflare.com/result");
       if (res.status === 200) {
         const data = await res.json();
         clearInterval(interval);
