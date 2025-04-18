@@ -59,7 +59,7 @@ async function submitData() {
     let attempt = 0;
 
     while (attempt < maxAttempts) {
-      const res = await fetch('https://d7b3-91-148-238-126.ngrok-free.app/result');
+      const res = await fetch('https://sources-coverage-herald-downloading.trycloudflare.com/result');
       const contentType = res.headers.get('content-type');
 
       if (contentType && contentType.includes('application/json')) {
