@@ -6,7 +6,7 @@ async function submitData() {
   const resultBlock = document.getElementById('resultBlock');
   const resultText = document.getElementById('resultText');
   resultBlock.classList.add('hidden');
-  resultText.innerText = "⏳ 正在分析中，请稍候...";
+  resultText.innerText = "⏳ 倪大师正在分析中，请稍候...";
 
   let text = '';
 
@@ -23,17 +23,16 @@ async function submitData() {
       return;
     }
 
-    // 读取图片转成 base64 或使用占位路径
-    const formData = new FormData();
-    formData.append('image', file);
-
-    // 临时生成图片链接（推荐改成上传到图床并返回 URL）
+    // 临时预览地址（Make 可选择是否接收）
     const tempUrl = URL.createObjectURL(file);
     text = `${analysisType}#${tempUrl}`;
   }
 
+  // 你在 Make 中配置的 Webhook 地址
+  const webhookUrl = "https://hook.us2.make.com/qopqcxklpfcksak3nzpkilnqp33ae281";
+
   try {
-    const res = await fetch("https://coding-resist-candidates-calls.trycloudflare.com/trigger", {
+    const res = await fetch(webhookUrl, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
@@ -41,21 +40,16 @@ async function submitData() {
       body: JSON.stringify({ text })
     });
 
-    const result = await res.json();
-    console.log("🎯 后端返回：", result);
-
-    if (result.status === "success") {
-      resultText.innerText = "✅ 分析任务已提交，正在等待结果...";
+    if (res.ok) {
+      resultText.innerText = "✅ 数据已发送至大师，等待分析中...";
       resultBlock.classList.remove('hidden');
-      pollResult();
+      pollResult(); // 开始轮询后端获取结果
     } else {
-      resultText.innerText = "❌ 提交失败：" + result.message;
-      resultBlock.classList.remove('hidden');
+      throw new Error("Make Webhook 提交失败");
     }
-
   } catch (err) {
     console.error("❌ 提交失败：", err);
-    resultText.innerText = "❌ 提交失败，请稍后再试。";
+    resultText.innerText = "❌ 提交失败，请稍后重试。";
     resultBlock.classList.remove('hidden');
   }
 }
@@ -72,14 +66,14 @@ async function pollResult() {
         clearInterval(interval);
         resultText.innerText = data.reply;
         resultBlock.classList.remove('hidden');
-      } else if (res.status === 204 || res.status === 202) {
-        console.log("⏳ 等待结果中...");
+      } else if (res.status === 202 || res.status === 204) {
+        console.log("⌛ 等待分析结果...");
       } else {
-        throw new Error("服务器返回错误");
+        throw new Error("服务器响应异常");
       }
     } catch (err) {
       clearInterval(interval);
-      resultText.innerText = "❌ 获取结果失败：" + err.message;
+      resultText.innerText = "❌ 获取分析结果失败：" + err.message;
       resultBlock.classList.remove('hidden');
     }
   }, 3000); // 每 3 秒轮询一次
