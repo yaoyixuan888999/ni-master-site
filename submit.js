@@ -60,7 +60,7 @@ async function pollResult() {
 
   const interval = setInterval(async () => {
     try {
-      const res = await fetch("https://coding-resist-candidates-calls.trycloudflare.com/result");
+      const res = await fetch("https://brisbane-needs-shall-deposit.trycloudflare.com/result");
       if (res.status === 200) {
         const data = await res.json();
         clearInterval(interval);
