@@ -1,4 +1,4 @@
-const apiBase = "https://note-segments-number-craig.trycloudflare.com";
+const apiBase = "https://rebel-ra-suggestion-density.trycloudflare.com";
 
 async function submitData() {
   const type = document.getElementById('analysisType').value;
