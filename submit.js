@@ -3,21 +3,39 @@ const apiBase = "https://rebel-ra-suggestion-density.trycloudflare.com";
 function appendMessage(role, text) {
   const chatBox = document.getElementById('chatBox');
   const wrapper = document.createElement('div');
-  wrapper.classList.add('mb-2');
+  wrapper.classList.add('flex', role === 'user' ? 'justify-end' : 'justify-start');
 
-  const label = document.createElement('strong');
-  label.textContent = role === 'user' ? '👤 你：' : '🧙 大师：';
+  const bubble = document.createElement('div');
+  bubble.classList.add('px-3', 'py-2', 'rounded-lg', 'max-w-xs', 'whitespace-pre-line', 'text-sm');
 
-  const message = document.createElement('div');
-  message.textContent = text;
-  message.classList.add('whitespace-pre-line');
+  if (role === 'user') {
+    bubble.classList.add('bg-blue-400', 'text-white');
+    bubble.textContent = `👤 你：\n${text}`;
+  } else {
+    bubble.classList.add('bg-gray-300', 'text-gray-800');
+    bubble.textContent = `🧙 大师：\n${text}`;
+  }
 
-  wrapper.appendChild(label);
-  wrapper.appendChild(message);
+  wrapper.appendChild(bubble);
   chatBox.appendChild(wrapper);
 
-  chatBox.scrollTop = chatBox.scrollHeight; // 自动滚动到底部
+  chatBox.scrollTop = chatBox.scrollHeight; // 自动滚动到最底部
 }
+
+// 动态切换显示上传 or 出生时间
+document.getElementById('analysisType').addEventListener('change', function () {
+  const type = this.value;
+  const imageUploadBlock = document.getElementById('imageUploadBlock');
+  const birthInputBlock = document.getElementById('birthInputBlock');
+
+  if (type === 'bazi') {
+    imageUploadBlock.classList.add('hidden');
+    birthInputBlock.classList.remove('hidden');
+  } else {
+    imageUploadBlock.classList.remove('hidden');
+    birthInputBlock.classList.add('hidden');
+  }
+});
 
 async function submitData() {
   const type = document.getElementById('analysisType').value;
