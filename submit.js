@@ -1,4 +1,4 @@
-const apiBase = "https://rebel-ra-suggestion-density.trycloudflare.com";
+const apiBase = "https://blessed-cute-listen-republic.trycloudflare.com";
 
 // 聊天气泡展示
 function appendMessage(role, text) {
