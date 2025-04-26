@@ -7,29 +7,42 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="submit.js"></script>
 </head>
-<body class="bg-gray-100 min-h-screen flex flex-col items-center justify-center">
-  <div class="bg-white p-8 rounded shadow-md w-full max-w-md">
-    <h1 class="text-2xl font-bold mb-4">倪大师 - 智能命理分析</h1>
-    <select id="analysisType" class="w-full border p-2 mb-4">
-      <option value="palm">手相分析</option>
-      <option value="face">面相分析</option>
-      <option value="bazi">八字分析</option>
-    </select>
+<body class="bg-gradient-to-br from-blue-100 to-white min-h-screen flex flex-col items-center justify-center p-4">
+  <div class="bg-white p-8 rounded-2xl shadow-2xl w-full max-w-md">
+    <h1 class="text-3xl font-bold mb-6 text-center text-blue-600">倪大师 - 智能命理分析</h1>
 
-    <input type="file" id="imageInput" accept="image/*" class="w-full border p-2 mb-4" />
-    <input type="text" id="birthInput" placeholder="如1990-01-01 08:00" class="w-full border p-2 mb-4 hidden" />
+    <div class="mb-4">
+      <label class="block mb-1 font-semibold text-gray-700">请选择分析类型</label>
+      <select id="analysisType" class="w-full border p-2 rounded">
+        <option value="palm">手相分析</option>
+        <option value="face">面相分析</option>
+        <option value="bazi">八字分析</option>
+      </select>
+    </div>
 
-    <button onclick="submitData()" class="bg-blue-500 text-white w-full py-2 rounded">提交分析</button>
+    <div id="imageUploadBlock" class="mb-4">
+      <label class="block mb-1 font-semibold text-gray-700">上传图像</label>
+      <input type="file" id="imageInput" accept="image/*" class="w-full border p-2 rounded" />
+    </div>
 
-    <div id="resultBlock" class="mt-4 hidden">
-      <h2 class="text-xl font-semibold mb-2">大师解析：</h2>
+    <div id="birthInputBlock" class="mb-4 hidden">
+      <label class="block mb-1 font-semibold text-gray-700">输入出生日期和时间</label>
+      <input type="text" id="birthInput" placeholder="如1990-01-01 08:00" class="w-full border p-2 rounded" />
+    </div>
 
-      <!-- 对话内容容器 -->
-      <div id="chatBox" class="border p-3 rounded bg-gray-50 h-64 overflow-y-auto whitespace-pre-line text-sm"></div>
+    <button onclick="submitData()" class="bg-blue-500 hover:bg-blue-600 text-white w-full py-2 mt-2 rounded-xl font-semibold">提交分析</button>
+
+    <div id="resultBlock" class="mt-6 hidden">
+      <h2 class="text-xl font-bold mb-3 text-gray-800">大师解析：</h2>
+
+      <!-- 聊天对话框 -->
+      <div id="chatBox" class="border p-4 rounded-lg bg-gray-50 h-72 overflow-y-auto space-y-4 text-sm"></div>
 
       <!-- 继续追问 -->
-      <input type="text" id="followupInput" placeholder="继续提问..." class="w-full border p-2 mt-4" />
-      <button onclick="followupAsk()" class="bg-green-500 text-white w-full py-2 mt-2 rounded">发送追问</button>
+      <div class="flex items-center mt-4 space-x-2">
+        <input type="text" id="followupInput" placeholder="继续提问..." class="flex-1 border p-2 rounded" />
+        <button onclick="followupAsk()" class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-xl font-semibold">发送</button>
+      </div>
     </div>
   </div>
 </body>
