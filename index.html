@@ -5,61 +5,27 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>倪大师 AI 智能命理分析</title>
   <script src="https://cdn.tailwindcss.com"></script>
-  <link href="https://fonts.googleapis.com/css2?family=ZCOOL+KuaiLe&display=swap" rel="stylesheet">
-  <style>
-    body {
-      font-family: 'ZCOOL KuaiLe', cursive;
-      background-image: url('https://img.tukuppt.com/bg_grid/00/13/13/cOWc5ReMlV.jpg');
-      background-size: cover;
-      background-position: center;
-      background-attachment: fixed;
-    }
-    .bg-overlay {
-      background-color: rgba(255, 255, 255, 0.92);
-      backdrop-filter: blur(4px);
-    }
-    .btn-shadow {
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-    }
-  </style>
-</head>
-<body class="min-h-screen flex flex-col items-center justify-center text-gray-800">
-  <div class="text-center mb-6">
-    <h1 class="text-4xl text-red-700 font-bold tracking-widest">倪大师</h1>
-    <p class="text-gray-600 text-lg">智能命理 · AI 图像识别 · 八字面相分析</p>
-  </div>
-
-  <div class="bg-overlay rounded-2xl p-8 shadow-xl w-full max-w-xl">
-    <div class="mb-5">
-      <label class="block text-lg font-semibold mb-2">请选择分析类型：</label>
-      <select id="analysisType" class="w-full border border-gray-300 rounded p-3 text-base">
-        <option value="palm">手相分析</option>
-        <option value="face">面相分析</option>
-        <option value="bazi">八字分析</option>
-      </select>
-    </div>
-
-    <div id="imageUploadBlock" class="mb-5">
-      <label class="block text-lg font-semibold mb-2">上传图像（用于手相/面相分析）：</label>
-      <input type="file" id="imageInput" accept="image/*" class="w-full border border-gray-300 rounded p-3" />
-    </div>
-
-    <div id="birthInputBlock" class="mb-5 hidden">
-      <label class="block text-lg font-semibold mb-2">出生信息（格式：1990-01-01 08:00）：</label>
-      <input type="text" id="birthInput" class="w-full border border-gray-300 rounded p-3" placeholder="请输入出生年月日时" />
-    </div>
-
-    <div class="text-center">
-      <button onclick="submitData()" class="bg-gradient-to-r from-red-500 to-yellow-500 text-white px-6 py-3 rounded-xl font-bold text-lg btn-shadow hover:scale-105 transition transform duration-200">🔮 提交分析</button>
-    </div>
-
-    <div id="resultBlock" class="mt-8 hidden">
-      <h2 class="text-xl font-semibold text-red-600 mb-2">大师解析如下：</h2>
-      <div id="resultText" class="bg-white border-l-4 border-yellow-500 p-4 rounded shadow-md text-gray-700"></div>
-    </div>
-  </div>
-
   <script src="submit.js"></script>
+</head>
+<body class="bg-gray-100 min-h-screen flex flex-col items-center justify-center">
+  <div class="bg-white p-8 rounded shadow-md w-full max-w-md">
+    <h1 class="text-2xl font-bold mb-4">倪大师 - 智能命理分析</h1>
+    <select id="analysisType" class="w-full border p-2 mb-4">
+      <option value="palm">手相分析</option>
+      <option value="face">面相分析</option>
+      <option value="bazi">八字分析</option>
+    </select>
+
+    <input type="file" id="imageInput" accept="image/*" class="w-full border p-2 mb-4" />
+    <input type="text" id="birthInput" placeholder="如1990-01-01 08:00" class="w-full border p-2 mb-4 hidden" />
+
+    <button onclick="submitData()" class="bg-blue-500 text-white w-full py-2 rounded">提交分析</button>
+
+    <div id="resultBlock" class="mt-4 hidden">
+      <h2 class="text-xl font-semibold mb-2">大师解析：</h2>
+      <p id="resultText" class="border p-2 rounded bg-gray-50"></p>
+    </div>
+  </div>
 </body>
 </html>
 
