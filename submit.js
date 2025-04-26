@@ -19,23 +19,8 @@ function appendMessage(role, text) {
   wrapper.appendChild(bubble);
   chatBox.appendChild(wrapper);
 
-  chatBox.scrollTop = chatBox.scrollHeight; // 自动滚动到最底部
+  chatBox.scrollTop = chatBox.scrollHeight; // 自动滚动到底部
 }
-
-// 动态切换显示上传 or 出生时间
-document.getElementById('analysisType').addEventListener('change', function () {
-  const type = this.value;
-  const imageUploadBlock = document.getElementById('imageUploadBlock');
-  const birthInputBlock = document.getElementById('birthInputBlock');
-
-  if (type === 'bazi') {
-    imageUploadBlock.classList.add('hidden');
-    birthInputBlock.classList.remove('hidden');
-  } else {
-    imageUploadBlock.classList.remove('hidden');
-    birthInputBlock.classList.add('hidden');
-  }
-});
 
 async function submitData() {
   const type = document.getElementById('analysisType').value;
@@ -123,3 +108,24 @@ async function followupAsk() {
     appendMessage("assistant", "❌ 追问失败：" + data.message);
   }
 }
+
+// ✅ 监听分析类型变化，动态隐藏/显示输入框（在页面加载完再绑定）
+document.addEventListener('DOMContentLoaded', () => {
+  const analysisTypeSelect = document.getElementById('analysisType');
+  const imageUploadBlock = document.getElementById('imageUploadBlock');
+  const birthInputBlock = document.getElementById('birthInputBlock');
+
+  function updateInputVisibility() {
+    const type = analysisTypeSelect.value;
+    if (type === 'bazi') {
+      imageUploadBlock.classList.add('hidden');
+      birthInputBlock.classList.remove('hidden');
+    } else {
+      imageUploadBlock.classList.remove('hidden');
+      birthInputBlock.classList.add('hidden');
+    }
+  }
+
+  analysisTypeSelect.addEventListener('change', updateInputVisibility);
+  updateInputVisibility(); // 页面加载时立即判断
+});
