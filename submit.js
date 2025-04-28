@@ -1,4 +1,4 @@
-const apiBase = "https://request-ken-ne-extreme.trycloudflare.com"; // 你的最新Cloudflare地址
+const apiBase = "https://mywork.wiki"; // 你的最新Cloudflare地址
 
 function appendMessage(role, text) {
   const chatBox = document.getElementById('chatBox');
